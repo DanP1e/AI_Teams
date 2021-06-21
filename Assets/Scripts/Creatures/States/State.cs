@@ -1,45 +1,56 @@
 ﻿using UnityEngine;
-using System;
+using System.Collections.Generic;
 public abstract class State : MonoBehaviour
 {
     private bool _isInitialized = false;
 
-    public event Action<State> StateChanged;
-    public bool IsInitialized { get => _isInitialized; private set => _isInitialized = value; }
+    [SerializeField] protected List<StateTransiton> stateTransitons;
 
-    // Вызывается при инициализации и выключении EntityStatesController
-    public void EnableState() 
+    public bool IsInitialized => _isInitialized;
+
+    public void Enter()
     {
-        if (IsInitialized)
-            return;
-        Init();
-        IsInitialized = true;
+        enabled = true;
+        foreach (StateTransiton transiton in stateTransitons)
+        {
+            transiton.enabled = true;
+        }
+        OnEntered();
     }
 
-    // Вызывается при выключении EntityStatesController
-    public void DisableState() 
+    public void Exit()
     {
-        if (!IsInitialized)
-            return;
-        Final();
-        IsInitialized = false;
+        foreach (StateTransiton transiton in stateTransitons)
+        {
+            transiton.enabled = false;
+        }
+        enabled = false;
+        OnOut();
+    }
+    protected virtual void OnEntered() { }
+    protected virtual void OnOut() { }
+    public State GetNextState()
+    {
+        foreach (StateTransiton transiton in stateTransitons)
+        {
+            State transState = transiton.GetState();
+            if (transState != null)
+                return transState;
+        }
+        return null;
     }
 
-    protected void ChangeState(State state)
+    public bool TryInitialize(params object[] initializationParams)
     {
-        StateChanged?.Invoke(state);
+        if (!_isInitialized)
+        {
+            Initialize(initializationParams);
+            _isInitialized = true;
+            return true;
+        }
+        return false;
     }
-
-    // Нужен для расширения EnableState
-    protected virtual void Init() { }
-
-    // Нужен для расширения DisableStatе
-    protected virtual void Final() { }
-
-    // Вызывается каждый кадр
-    public virtual void OnStateUpdate() { } 
-    
-    
+    protected abstract void Initialize(params object[] initializationParams); 
     
 }
 
