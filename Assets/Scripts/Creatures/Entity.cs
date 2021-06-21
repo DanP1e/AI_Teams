@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using System;
+
 
 public abstract class Entity : MonoBehaviour, IAlive
 {
@@ -9,7 +11,7 @@ public abstract class Entity : MonoBehaviour, IAlive
     public float HP => _hp;
     public float MaxHP => _maxHP;
 
-    public event Action<IAlive> Dying;
+    public event UnityAction<IAlive> Dying;
 
     public float Heal(float addedHp)
     {       
